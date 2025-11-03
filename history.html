@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Message History</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav {
+            background-color: #222;
+            padding: 15px 0;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        nav a:hover {
+            color: #8b5cf6;
+            text-decoration: underline;
+        }
+        
+        h1 {
+            margin-top: 40px;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        
+        li {
+            background-color: #333;
+            margin: 10px auto;
+            padding: 10px 20px;
+            border-radius: 12px;
+            width: 60%;
+            text-align: left;
+            font-size: 18px;
+        }
+        
+        #clearBtn {
+            margin-top: 30px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        #clearBtn:hover {
+            background-color: #ff6666;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html">Powerdesk.ai</a>
+        <a href="history.html">History</a>
+        <a href="guidelines.html">Guidelines</a>
+    </nav>
+
+    <h1>History of Messages</h1>
+
+    <ul id="historyList"></ul>
+    <button id="clearBtn">Clear All Messages</button>
+
+    <script>
+        const historyList = document.getElementById('historyList');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem('history')) || [];
+            historyList.innerHTML = '';
+
+            if (messages.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = "No messages yet. Go to Powerdesk.ai to add some!";
+                historyList.appendChild(li);
+            } else {
+                messages.forEach(msg => {
+                    const li = document.createElement('li');
+                    li.textContent = msg;
+                    historyList.appendChild(li);
+                });
+            }
+        }
+
+        // Clear all messages
+        clearBtn.addEventListener('click', () => {
+            localStorage.removeItem('history');
+            loadMessages();
+        });
+
+        // Load messages on page open
+        loadMessages();
+    </script>
+</body>
+
+</html>

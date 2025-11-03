@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PowerDesk / Blackbox-style UI — Demo</title>
+  <meta name="description" content="Demo UI inspired by blackbox.ai — dark hero, chat card with history, editable headline and CTA." />
+  <style>
+    :root{
+      --bg:#050507;
+      --panel:#0b0b0c;
+      --muted:#9aa0a6;
+      --accent:#00d884;
+      --glass: rgba(255,255,255,0.03);
+      --glass-2: rgba(255,255,255,0.06);
+    }
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial;color:#eaf2f6;background:var(--bg);-webkit-font-smoothing:antialiased}
+    .page{max-width:980px;margin:18px auto;padding:18px;display:grid;grid-template-columns:1fr;gap:18px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .mark{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#00d884,#00aaff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#00110a}
+    .brand-title{font-weight:700;font-size:16px}
+    .plans-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
+
+    /* hero area */
+    .hero-wrap{display:flex;align-items:flex-start;gap:20px}
+    .hero{
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border-radius:18px;padding:20px;flex:1;position:relative;border:1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    .hero-inner{display:flex;gap:18px;align-items:center}
+    /* the circled visual from screenshot */
+    .hero-circle{
+      flex:1;
+      background: linear-gradient(180deg, #070708, #0c0c0d);
+      border-radius:18px;padding:18px;border:2px solid rgba(0,216,136,0.06);
+      display:flex;flex-direction:column;gap:10px;
+      min-height:120px;
+    }
+    .pill{
+      display:inline-block;background:rgba(255,255,255,0.04);padding:6px 10px;border-radius:999px;font-size:13px;color:#fff;width:max-content;
+    }
+    .hero-title{font-size:22px;color:#fff;margin:6px 0;font-weight:700}
+    .hero-sub{color:var(--muted);font-size:13px;margin:0}
+    .hero-edit{display:flex;gap:8px;margin-top:8px}
+    .hero-edit input{flex:1;background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:10px;color:#fff}
+    .hero-edit button{background:var(--accent);border:none;padding:10px 12px;border-radius:10px;color:#00110a;font-weight:700;cursor:pointer}
+
+    /* chat card (like the message box in screenshot) */
+    .chat-card{
+      width:100%;max-width:700px;margin-top:14px;background:linear-gradient(180deg,#0b0b0c,#0f1112);border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,0.03)
+    }
+    .chat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+    .chat-box{height:360px;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+    .bubble{display:inline-block;padding:10px 12px;border-radius:12px;max-width:78%;line-height:1.35}
+    .bubble.bot{align-self:flex-start;background:rgba(255,255,255,0.04);color:#eaf2f6;border-radius:12px 12px 12px 6px}
+    .bubble.user{align-self:flex-end;background:linear-gradient(90deg,#0f6fff,#00d884);color:#001b14;border-radius:12px 12px 6px 12px}
+    .chat-input{display:flex;gap:8px;margin-top:12px;align-items:center}
+    .chat-input input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#fff}
+    .icon-btn{background:transparent;border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:10px;color:var(--muted);cursor:pointer}
+    .start-trial{background:transparent;border-top:1px solid rgba(255,255,255,0.02);padding-top:8px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+
+    /* small footer area inside hero for upgrade link */
+    .cta-row{display:flex;gap:12px;align-items:center;margin-top:6px}
+    .link-muted{color:var(--muted);font-size:13px}
+    .link-accent{color:var(--accent);text-decoration:none;font-weight:600}
+
+    /* responsive */
+    @media (max-width:880px){
+      .hero-inner{flex-direction:column}
+      .chat-card{height:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="logo">
+        <div class="mark">P</div>
+        <div>
+          <div class="brand-title">powerdesk.ai</div>
+          <div class="tag" style="color:var(--muted);font-size:13px">The best AI agent for builders</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="plans-btn" id="plansBtn">PLANS</button>
+        <button class="plans-btn" id="menuBtn">☰</button>
+      </div>
+    </header>
+
+    <main class="hero-wrap">
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-inner">
+          <div class="hero-circle" role="region" aria-label="Main headline area">
+            <span class="pill">New &nbsp; Try Remote Agents</span>
+            <div>
+              <div id="heroTitle" class="hero-title">The best AI agent for builders</div>
+              <div id="heroSub" class="hero-sub">30M users &amp; Fortune 500 Companies</div>
+            </div>
+
+            <div class="hero-edit">
+              <input id="heroInput" placeholder="Type custom headline or CTA..." />
+              <button id="applyHero">Apply</button>
+            </div>
+
+            <div class="cta-row">
+              <div class="link-muted">Make a custom message visible on the main UI.</div>
+              <a class="link-accent" href="#" id="upgradeLink">Upgrade plan</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- right column: chat card similar to screenshot message box -->
+        <div style="min-width:320px;max-width:420px;">
+          <div class="chat-card" role="region" aria-label="Chat card">
+            <div class="chat-top">
+              <div style="font-weight:700">Message POWERDESK...</div>
+              <div class="link-muted">START TRIAL NOW • <a class="link-accent" href="#">Upgrade plan</a></div>
+            </div>
+
+            <div id="chatBox" class="chat-box" aria-live="polite"></div>
+
+            <div class="chat-input" style="margin-top:6px;">
+              <input id="userInput" placeholder="Type a message..." />
+              <button id="attachBtn" class="icon-btn" title="Attach">📎</button>
+              <button id="cameraBtn" class="icon-btn" title="Camera">📷</button>
+              <button id="sendBtn" class="icon-btn" title="Send">➤</button>
+            </div>
+
+            <div class="start-trial">
+              <div class="link-muted">Tip: Chat history is local to your browser.</div>
+              <div style="display:flex;gap:8px">
+                <button class="icon-btn" id="clearHistory">Clear</button>
+                <button class="icon-btn" id="downloadBtn">⬇️</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Simple front-end behavior:
+    // - Editable hero headline (Apply)
+    // - Chat with local history (localStorage)
+    // - Basic rule-based bot responses (replace later with API calls)
+
+    const HERO_TITLE = document.getElementById('heroTitle');
+    const HERO_SUB = document.getElementById('heroSub');
+    const heroInput = document.getElementById('heroInput');
+    const applyHero = document.getElementById('applyHero');
+
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const attachBtn = document.getElementById('attachBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const clearHistoryBtn = document.getElementById('clearHistory');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    const STORAGE_KEY = 'blackbox_ui_chat_v1';
+
+    // load/save history
+    function loadHistory(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        return [];
+      }
+    }
+    function saveHistory(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+    function renderHistory(){
+      const arr = loadHistory();
+      chatBox.innerHTML = '';
+      arr.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'bubble ' + (item.from === 'user' ? 'user' : 'bot');
+        d.textContent = item.text;
+        chatBox.appendChild(d);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function pushMessage(from, text){
+      const arr = loadHistory();
+      arr.push({from, text, t: Date.now()});
+      saveHistory(arr);
+      renderHistory();
+    }
+
+    // simple rule-based replies
+    function botReply(text){
+      const t = text.toLowerCase();
+      if(t.includes('hello') || t.includes('hi')) return 'Hi! I am PowerDesk demo assistant — how can I help?';
+      if(t.includes('how are you')) return "I'm a demo agent running in your browser.";
+      if(t.includes('help') || t.includes('tutorial')) return "Try 'clear' to erase history or 'upgrade' to see plan options.";
+      if(t.includes('clear')){ localStorage.removeItem(STORAGE_KEY); return 'History cleared.'; }
+      if(t.includes('upgrade')) return 'Visit the Plans button to upgrade (demo).';
+      return "Sorry — this is a demo. Connect a server API to get real AI responses.";
+    }
+
+    // send handler
+    sendBtn.addEventListener('click', () => {
+      const text = userInput.value.trim();
+      if(!text) return;
+      pushMessage('user', text);
+      userInput.value = '';
+      // show typing indicator
+      pushMessage('bot', '...thinking');
+      setTimeout(() => {
+        // remove the last typing indicator (simple approach)
+        const arr = loadHistory();
+        // find last bot '...thinking' and replace with reply
+        for(let i = arr.length - 1; i >= 0; i--){
+          if(arr[i].from === 'bot' && arr[i].text === '...thinking'){
+            arr.splice(i, 1); // remove
+            break;
+          }
+        }
+        saveHistory(arr);
+        const reply = botReply(text);
+        pushMessage('bot', reply);
+      }, 600);
+    });
+
+    userInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') sendBtn.click();
+    });
+
+    attachBtn.addEventListener('click', () => {
+      pushMessage('user', '[attachment]');
+      setTimeout(()=> pushMessage('bot', 'Attachment received (demo).'), 350);
+    });
+    cameraBtn.addEventListener('click', () => {
+      pushMessage('user', '[photo]');
+      setTimeout(()=> pushMessage('bot', 'Photo received (demo).'), 350);
+    });
+
+    clearHistoryBtn.addEventListener('click', () => {
+      if(confirm('Clear chat history?')) { localStorage.removeItem(STORAGE_KEY); renderHistory(); }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const arr = loadHistory();
+      const data = JSON.stringify(arr, null, 2);
+      const blob = new Blob([data], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'chat_history.json';
+      a.click(); URL.revokeObjectURL(url);
+    });
+
+    applyHero.addEventListener('click', () => {
+      const v = heroInput.value.trim();
+      if(!v) return;
+      HERO_TITLE.textContent = v;
+      heroInput.value = '';
+    });
+
+    // seed a welcome if empty
+    if(!localStorage.getItem(STORAGE_KEY)){
+      saveHistory([{from:'bot', text:'Welcome to this demo UI — type \"help\" for tips.'}]);
+    }
+    renderHistory();
+  </script>
+</body>
+</html>

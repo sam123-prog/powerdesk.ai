@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!-- saved from url=(0032)file:///C:/Users/Dell/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Powerdesk.ai</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        /* Navigation Bar */
+        
+        nav {
+            background-color: #222;
+            padding: 15px 0;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        nav a:hover {
+            color: #8b5cf6;
+            text-decoration: underline;
+        }
+        /* Page Heading */
+        
+        h1 {
+            margin-top: 40px;
+            font-size: 28px;
+        }
+        /* Message Form */
+        
+        form {
+            margin-top: 40px;
+        }
+        
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #8b5cf6;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #a78bfa;
+        }
+        /* Footer */
+        
+        footer {
+            margin-top: 60px;
+            font-size: 14px;
+            color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <a href="file:///C:/Users/Dell/index.html">Powerdesk.ai</a>
+        <a href="file:///C:/Users/Dell/history.html">History</a>
+        <a href="file:///C:/Users/Dell/guidelines.html">Guidelines</a>
+    </nav>
+
+    <!-- Heading -->
+    <h1>Powerdesk.ai - Custom Message</h1>
+
+    <!-- Message Input Form -->
+    <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Enter your message" required="">
+        <button type="submit">Submit</button>
+    </form>
+
+    <footer>
+        © 2025 Powerdesk.ai | All Rights Reserved
+    </footer>
+
+    <script>
+        // Save message to localStorage when submitted
+        const form = document.getElementById('messageForm');
+        const input = document.getElementById('messageInput');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // stop form from reloading page
+            const message = input.value.trim();
+            if (message) {
+                // Retrieve existing messages or create new array
+                let messages = JSON.parse(localStorage.getItem('history')) || [];
+                messages.push(message);
+                localStorage.setItem('history', JSON.stringify(messages));
+                alert("Message saved to history!");
+                input.value = ""; // clear input box
+            }
+        });
+    </script>
+
+
+</body></html>
