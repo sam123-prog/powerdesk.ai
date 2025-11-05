@@ -176,10 +176,10 @@
     "page": "http://localhost:3000/index.html"
   },
   {
-  "id": 17,
-  "ts": "2025-11-05T22:40:33.707Z",
-  "incoming": "fdhil",
-  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "id": 17,
+    "ts": "2025-11-05T22:40:33.707Z",
+    "incoming": "fdhil",
+    "reply": "Hello! I am Helpdesk AI. How can I help?",
     "model": "fallback",
     "raw_response": null,
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
@@ -198,10 +198,21 @@
     "page": "https://sam123-prog.github.io/powerdesk.ai/"
   },
   {
-  "id": 19,
-  "ts": "2025-11-05T22:46:16.911Z",
-  "incoming": "hello",
-  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "id": 19,
+    "ts": "2025-11-05T22:46:16.911Z",
+    "incoming": "hello",
+    "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "https://sam123-prog.github.io/powerdesk.ai/"
+  },
+  {
+    "id": 20,
+    "ts": "2025-11-05T22:50:34.028Z",
+    "incoming": "hello",
+    "reply": "Hello! I am Helpdesk AI. How can I help?",
     "model": "fallback",
     "raw_response": null,
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
