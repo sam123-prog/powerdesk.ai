@@ -1,5 +1,11 @@
 // Simple floating chat widget that posts to the backend /api/chat
-(function () {
+// idempotency guard: avoid initializing twice if the script is included multiple times
+if (window.__PD_WIDGET_LOADED) {
+  console.warn('Powerdesk widget already initialized; skipping duplicate load.');
+} else {
+  window.__PD_WIDGET_LOADED = true;
+
+  (function () {
   const API_URL = (window.POWERDESK_API_URL || 'http://localhost:3000') + '/api/chat';
 
   // create styles container
@@ -44,6 +50,8 @@
   close.addEventListener('click', () => btn.click());
 
   function addMessage(text, from = 'bot') {
+    // sanitize old name occurrences so historical or cached messages don't show "Helodesk"
+    if (typeof text === 'string') text = text.replace(/Helodesk/g, 'Helpdesk');
     const m = el('div', { class: 'pd-msg ' + (from === 'user' ? 'user' : 'bot') });
     // allow basic formatting/newlines
     m.textContent = text;
@@ -95,4 +103,5 @@
   if (!messages.hasChildNodes()) {
     addMessage('Welcome to Helpdesk AI — ask me anything.');
   }
-})();
+  })();
+}
