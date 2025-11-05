@@ -14,8 +14,86 @@ app.use(express.static(path.join(__dirname)));
 const PORT = process.env.PORT || 3000;
 const HF_KEY = process.env.HF_API_KEY;
 
+// Storage layer: prefer SQLite (better-sqlite3) if available, otherwise fall back to JSON file storage.
+let useSqlite = false;
+let db, logMessage, getHistoryRows, clearAll;
+const messagesJsonPath = path.join(__dirname, 'messages.json');
+
+try {
+  const Database = require('better-sqlite3');
+  const dbPath = path.join(__dirname, 'data.sqlite');
+  db = new Database(dbPath);
+  db.prepare(`CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TEXT,
+    incoming TEXT,
+    reply TEXT,
+    model TEXT,
+    raw_response TEXT,
+    user_agent TEXT,
+    ip TEXT,
+    page TEXT
+  )`).run();
+
+  logMessage = (record) => {
+    try {
+      const stmt = db.prepare('INSERT INTO messages (ts,incoming,reply,model,raw_response,user_agent,ip,page) VALUES (?,?,?,?,?,?,?,?)');
+      stmt.run(record.ts, record.incoming, record.reply, record.model || null, record.raw_response || null, record.user_agent || null, record.ip || null, record.page || null);
+    } catch (e) {
+      console.error('DB write failed', e);
+    }
+  };
+
+  getHistoryRows = (limit) => db.prepare('SELECT * FROM messages ORDER BY id DESC LIMIT ?').all(limit);
+  clearAll = () => db.prepare('DELETE FROM messages').run();
+  useSqlite = true;
+  console.log('Using SQLite storage (data.sqlite)');
+} catch (err) {
+  // Fall back to JSON file logging
+  console.warn('better-sqlite3 not available, falling back to messages.json storage');
+
+  const fs = require('fs');
+
+  function readAll() {
+    try {
+      if (!fs.existsSync(messagesJsonPath)) return [];
+      const raw = fs.readFileSync(messagesJsonPath, 'utf8');
+      return JSON.parse(raw || '[]');
+    } catch (e) {
+      console.error('Failed to read messages.json', e);
+      return [];
+    }
+  }
+
+  function writeAll(arr) {
+    try {
+      fs.writeFileSync(messagesJsonPath, JSON.stringify(arr, null, 2), 'utf8');
+    } catch (e) {
+      console.error('Failed to write messages.json', e);
+    }
+  }
+
+  logMessage = (record) => {
+    try {
+      const arr = readAll();
+      arr.push(Object.assign({ id: (arr.length ? (arr[arr.length-1].id || arr.length) + 1 : 1) }, record));
+      writeAll(arr);
+    } catch (e) {
+      console.error('JSON log failed', e);
+    }
+  };
+
+  getHistoryRows = (limit) => {
+    const arr = readAll().slice(-limit).reverse();
+    return arr;
+  };
+
+  clearAll = () => writeAll([]);
+}
+
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
+  const page = req.body.page || req.get('Referer') || null;
   if (!message) return res.status(400).json({ error: 'Message required' });
 
   try {
@@ -47,10 +125,35 @@ app.post('/api/chat', async (req, res) => {
         text = JSON.stringify(data);
       }
 
+      // Log to DB
+      logMessage({
+        ts: new Date().toISOString(),
+        incoming: message,
+        reply: text,
+        model: 'google/flan-t5-small',
+        raw_response: JSON.stringify(data),
+        user_agent: req.get('User-Agent') || null,
+        ip: req.ip,
+        page
+      });
+
       return res.json({ reply: text });
     } else {
       // Simple offline fallback reply
       const reply = simpleReply(message);
+
+      // Log fallback to DB as well
+      logMessage({
+        ts: new Date().toISOString(),
+        incoming: message,
+        reply,
+        model: 'fallback',
+        raw_response: null,
+        user_agent: req.get('User-Agent') || null,
+        ip: req.ip,
+        page
+      });
+
       return res.json({ reply });
     }
   } catch (err) {
@@ -67,3 +170,24 @@ function simpleReply(msg) {
 }
 
 app.listen(PORT, () => console.log(`Powerdesk backend listening on http://localhost:${PORT}`));
+
+// History endpoint (simple, returns last N records)
+app.get('/api/history', (req, res) => {
+  const limit = parseInt(req.query.limit || '200', 10);
+  try {
+      const rows = getHistoryRows(limit);
+    res.json({ ok: true, rows });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Clear stored messages (dangerous - no auth for hackathon). Use with care.
+app.post('/api/clear', (req, res) => {
+  try {
+    db.prepare('DELETE FROM messages').run();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
