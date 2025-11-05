@@ -15,7 +15,7 @@
   const btn = el('button', { id: 'pd-chat-btn', type: 'button', title: 'Help' }, ['💬']);
   const panel = el('div', { id: 'pd-chat-panel', 'aria-hidden': 'true' });
   const header = el('div', { id: 'pd-chat-header' });
-  const title = el('div', { id: 'pd-chat-title' }, ['Helodesk AI']);
+  const title = el('div', { id: 'pd-chat-title' }, ['Helpdesk AI']);
   const close = el('button', { id: 'pd-chat-close', title: 'Close' }, ['×']);
   const messages = el('div', { id: 'pd-chat-messages' });
   const form = el('form', { id: 'pd-chat-form' });
@@ -54,7 +54,7 @@
   function setTyping(on=true){
     if(on){
       if(!document.getElementById('pd-typing')){
-        const t = el('div',{id:'pd-typing',class:'pd-msg bot'},['Helodesk is typing...']);
+  const t = el('div',{id:'pd-typing',class:'pd-msg bot'},['Helpdesk is typing...']);
         messages.appendChild(t);
       }
     } else {
@@ -91,6 +91,8 @@
     sendMessage(txt);
   });
 
-  // welcome
-  addMessage('Welcome to Helodesk AI — ask me anything.');
+  // welcome — only add if there are no messages already (prevents duplication)
+  if (!messages.hasChildNodes()) {
+    addMessage('Welcome to Helpdesk AI — ask me anything.');
+  }
 })();

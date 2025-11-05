@@ -183,7 +183,7 @@ app.post('/api/chat', async (req, res) => {
 
 function simpleReply(msg) {
   const lower = msg.toLowerCase();
-  if (lower.includes('hello') || lower.includes('hi')) return 'Hello! I am Helodesk AI. How can I help?';
+  if (lower.includes('hello') || lower.includes('hi')) return 'Hello! I am Helpdesk AI. How can I help?';
   if (lower.includes('price')) return 'Pricing depends on your plan — please share which product or plan you mean.';
   return "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: " + msg;
 }
