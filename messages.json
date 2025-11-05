@@ -1,0 +1,189 @@
+[
+  {
+    "id": 1,
+    "ts": "2025-11-05T21:59:49.364Z",
+    "incoming": "hello from quick json storage",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-IN) WindowsPowerShell/5.1.26100.6725",
+    "ip": "::1",
+    "page": null
+  },
+  {
+    "id": 2,
+    "ts": "2025-11-05T22:04:01.958Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/index.html"
+  },
+  {
+    "id": 3,
+    "ts": "2025-11-05T22:04:04.989Z",
+    "incoming": "jahduba",
+    "reply": "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: jahduba",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/index.html"
+  },
+  {
+    "id": 4,
+    "ts": "2025-11-05T22:04:20.944Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/index.html"
+  },
+  {
+    "id": 5,
+    "ts": "2025-11-05T22:11:41.556Z",
+    "incoming": "Is the floating bot working?",
+    "reply": "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: Is the floating bot working?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-IN) WindowsPowerShell/5.1.26100.6725",
+    "ip": "::1",
+    "page": null
+  },
+  {
+    "id": 6,
+    "ts": "2025-11-05T22:27:47.549Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://127.0.0.1:5500/index.html"
+  },
+  {
+    "id": 7,
+    "ts": "2025-11-05T22:27:54.176Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://127.0.0.1:5500/index.html"
+  },
+  {
+    "id": 8,
+    "ts": "2025-11-05T22:30:37.082Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/"
+  },
+  {
+    "id": 9,
+    "ts": "2025-11-05T22:30:43.868Z",
+    "incoming": "how are you",
+    "reply": "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: how are you",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/"
+  },
+  {
+    "id": 10,
+    "ts": "2025-11-05T22:32:03.523Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/"
+  },
+  {
+    "id": 11,
+    "ts": "2025-11-05T22:32:07.049Z",
+    "incoming": "fhel",
+    "reply": "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: fhel",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/"
+  },
+  {
+    "id": 12,
+    "ts": "2025-11-05T22:35:11.304Z",
+    "incoming": "adbkjsb\nbfwskndl",
+    "reply": "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: adbkjsb\nbfwskndl",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/history.html"
+  },
+  {
+    "id": 13,
+    "ts": "2025-11-05T22:35:18.143Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/history.html"
+  },
+  {
+    "id": 14,
+    "ts": "2025-11-05T22:35:22.910Z",
+    "incoming": "hi",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/history.html"
+  },
+  {
+    "id": 15,
+    "ts": "2025-11-05T22:35:29.377Z",
+    "incoming": "who are you",
+    "reply": "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: who are you",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/history.html"
+  },
+  {
+    "id": 16,
+    "ts": "2025-11-05T22:40:30.327Z",
+    "incoming": "hello",
+  "reply": "Hello! I am Helpdesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/index.html"
+  },
+  {
+    "id": 17,
+    "ts": "2025-11-05T22:40:33.707Z",
+    "incoming": "fdhil",
+    "reply": "Hello! I am Helodesk AI. How can I help?",
+    "model": "fallback",
+    "raw_response": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "ip": "::1",
+    "page": "http://localhost:3000/index.html"
+  }
+]
