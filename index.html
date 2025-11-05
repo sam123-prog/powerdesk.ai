@@ -87,34 +87,16 @@
     <!-- Heading -->
     <h1>Powerdesk.ai - Custom Message</h1>
 
-    <!-- Message Input Form -->
-    <form id="messageForm">
-        <input type="text" id="messageInput" placeholder="Enter your message" required="">
-        <button type="submit">Submit</button>
-    </form>
-
+    <!-- Use the floating help button (bottom-right) to chat with Helodesk AI -->
+    <div style="max-width:900px;margin:40px auto;text-align:center;">
+        <p style="color:#cbd5e1;font-size:18px;line-height:1.6;">Welcome to Powerdesk.ai — use the floating help button in the bottom-right corner to open Helodesk AI. Ask product questions, troubleshooting tips, or anything about this site. Your conversations are stored server-side for this hackathon.</p>
+        <p style="color:#94a3b8;font-size:13px;">Tip: if you want to see saved messages, open <a href="/admin.html" style="color:#b5aaff">Admin → Messages</a>.</p>
+    </div>
     <footer>
         © 2025 Powerdesk.ai | All Rights Reserved
     </footer>
 
-    <script>
-        // Save message to localStorage when submitted
-        const form = document.getElementById('messageForm');
-        const input = document.getElementById('messageInput');
-
-        form.addEventListener('submit', (event) => {
-            event.preventDefault(); // stop form from reloading page
-            const message = input.value.trim();
-            if (message) {
-                // Retrieve existing messages or create new array
-                let messages = JSON.parse(localStorage.getItem('history')) || [];
-                messages.push(message);
-                localStorage.setItem('history', JSON.stringify(messages));
-                alert("Message saved to history!");
-                input.value = ""; // clear input box
-            }
-        });
-    </script>
+    <!-- Floating help widget is primary — no inline chat here -->
 
 
 </body>

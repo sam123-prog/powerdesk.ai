@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Powerdesk Admin — Messages</title>
+  <style>
+    body{background:#000;color:#e6eef8;font-family:Arial,Helvetica,sans-serif;padding:20px}
+    h1{color:#b5aaff}
+    #feed{max-width:1000px;margin-top:12px}
+    .record{background:#071425;border:1px solid #122; padding:12px;border-radius:10px;margin:8px 0}
+    .meta{color:#9aa; font-size:12px}
+    button{background:#8b5cf6;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  </style>
+  <script>
+    let es;
+    function init(){
+      loadHistory();
+      es = new EventSource('/api/stream');
+      es.onmessage = (e)=>{
+        try{ const obj = JSON.parse(e.data); prependRecord(obj); }catch(err){}
+      };
+    }
+    async function loadHistory(){
+      const res = await fetch('/api/history?limit=200');
+      const data = await res.json();
+      const feed = document.getElementById('feed'); feed.innerHTML='';
+      (data.rows||[]).forEach(r=> prependRecord(r,false));
+    }
+    function prependRecord(r, scroll=true){
+      const feed = document.getElementById('feed');
+      const d = document.createElement('div'); d.className='record';
+      d.innerHTML = `<div class="meta"><strong>${r.ts}</strong> — <span>${r.model||''}</span></div><div style="margin-top:6px"><b>In:</b> ${escapeHtml(r.incoming)}</div><div style="margin-top:6px"><b>Out:</b> ${escapeHtml(r.reply)}</div><div class="meta" style="margin-top:6px">${escapeHtml(r.page||'')} - ${escapeHtml(r.user_agent||'')}</div>`;
+      feed.insertBefore(d, feed.firstChild);
+      if(scroll) d.scrollIntoView({behavior:'smooth'});
+    }
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    async function clearAll(){ if(!confirm('Clear all server messages?')) return; await fetch('/api/clear',{method:'POST'}); document.getElementById('feed').innerHTML=''; }
+  </script>
+</head>
+<body onload="init()">
+  <h1>Powerdesk Admin — Live Messages</h1>
+  <div style="margin:8px 0">
+    <button onclick="loadHistory()">Reload</button>
+    <button onclick="clearAll()">Clear All</button>
+    <a href="/messages.json" style="margin-left:12px;color:#9a8df0">Download JSON</a>
+  </div>
+  <div id="feed"></div>
+</body>
+</html>

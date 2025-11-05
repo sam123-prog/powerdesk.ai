@@ -18,6 +18,20 @@ const HF_KEY = process.env.HF_API_KEY;
 let useSqlite = false;
 let db, logMessage, getHistoryRows, clearAll;
 const messagesJsonPath = path.join(__dirname, 'messages.json');
+// SSE clients for real-time admin UI
+const sseClients = [];
+
+function sendSseEvent(obj) {
+  const data = `data: ${JSON.stringify(obj)}\n\n`;
+  for (let i = sseClients.length - 1; i >= 0; i--) {
+    try {
+      sseClients[i].write(data);
+    } catch (e) {
+      // remove dead client
+      sseClients.splice(i, 1);
+    }
+  }
+}
 
 try {
   const Database = require('better-sqlite3');
@@ -78,6 +92,7 @@ try {
       const arr = readAll();
       arr.push(Object.assign({ id: (arr.length ? (arr[arr.length-1].id || arr.length) + 1 : 1) }, record));
       writeAll(arr);
+      try { sendSseEvent(record); } catch (e) { /* ignore */ }
     } catch (e) {
       console.error('JSON log failed', e);
     }
@@ -126,7 +141,7 @@ app.post('/api/chat', async (req, res) => {
       }
 
       // Log to DB
-      logMessage({
+      const record = {
         ts: new Date().toISOString(),
         incoming: message,
         reply: text,
@@ -135,7 +150,9 @@ app.post('/api/chat', async (req, res) => {
         user_agent: req.get('User-Agent') || null,
         ip: req.ip,
         page
-      });
+      };
+      logMessage(record);
+      try { sendSseEvent(record); } catch (e) { }
 
       return res.json({ reply: text });
     } else {
@@ -143,7 +160,7 @@ app.post('/api/chat', async (req, res) => {
       const reply = simpleReply(message);
 
       // Log fallback to DB as well
-      logMessage({
+      const record2 = {
         ts: new Date().toISOString(),
         incoming: message,
         reply,
@@ -152,7 +169,9 @@ app.post('/api/chat', async (req, res) => {
         user_agent: req.get('User-Agent') || null,
         ip: req.ip,
         page
-      });
+      };
+      logMessage(record2);
+      try { sendSseEvent(record2); } catch (e) { }
 
       return res.json({ reply });
     }
@@ -180,6 +199,20 @@ app.get('/api/history', (req, res) => {
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
+});
+
+// Server-Sent Events endpoint for real-time message feed (admin UI)
+app.get('/api/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders && res.flushHeaders();
+  res.write(': connected\n\n');
+  sseClients.push(res);
+  req.on('close', () => {
+    const idx = sseClients.indexOf(res);
+    if (idx !== -1) sseClients.splice(idx, 1);
+  });
 });
 
 // Clear stored messages (dangerous - no auth for hackathon). Use with care.
