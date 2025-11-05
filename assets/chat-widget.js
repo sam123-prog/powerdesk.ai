@@ -69,7 +69,8 @@
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, page: window.location.href })
+        // mark support:true so backend/logs can treat widget as support bot
+        body: JSON.stringify({ message: text, page: window.location.href, support: true })
       });
       const data = await res.json();
       setTyping(false);
