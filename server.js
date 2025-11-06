@@ -12,7 +12,24 @@ app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
 const PORT = process.env.PORT || 3000;
-const HF_KEY = process.env.HF_API_KEY;
+let HF_KEY = process.env.HF_API_KEY;
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || null;
+
+// allow storing the HF key in a local secrets.json (gitignored). If present, it overrides env HF_API_KEY.
+const fs = require('fs');
+const secretsPath = path.join(__dirname, 'secrets.json');
+try {
+  if (fs.existsSync(secretsPath)) {
+    const secRaw = fs.readFileSync(secretsPath, 'utf8') || '{}';
+    const secrets = JSON.parse(secRaw);
+    if (secrets && secrets.HF_API_KEY) {
+      HF_KEY = HF_KEY || secrets.HF_API_KEY;
+      console.log('Loaded HF API key from secrets.json');
+    }
+  }
+} catch (e) {
+  console.warn('Failed to read secrets.json', e.message);
+}
 
 // Storage layer: prefer SQLite (better-sqlite3) if available, otherwise fall back to JSON file storage.
 let useSqlite = false;
@@ -223,4 +240,30 @@ app.post('/api/clear', (req, res) => {
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
+});
+
+// Admin: set HF API key (stores in secrets.json). Requires ADMIN_TOKEN in env and adminToken in body.
+app.post('/api/admin/set-key', (req, res) => {
+  const { key, adminToken } = req.body || {};
+  if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
+  if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
+  try {
+    const data = { HF_API_KEY: key };
+    fs.writeFileSync(secretsPath, JSON.stringify(data, null, 2), 'utf8');
+    HF_KEY = key;
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Admin: get masked HF key info
+app.get('/api/admin/key', (req, res) => {
+  const adminToken = req.query.adminToken || req.get('x-admin-token');
+  if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
+  if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
+  if (!HF_KEY) return res.json({ ok: true, exists: false });
+  const key = HF_KEY;
+  const masked = key.length > 8 ? key.slice(0,4) + '...' + key.slice(-4) : key.replace(/.(?=.{2})/g, '*');
+  return res.json({ ok: true, exists: true, masked });
 });

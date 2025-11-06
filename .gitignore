@@ -6,3 +6,4 @@ server.log
 npm-debug.log*
 # macOS
 .AppleDouble
+secrets.json
