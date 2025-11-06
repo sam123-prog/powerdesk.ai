@@ -1,7 +1,7 @@
 Powerdesk.ai — Backend & Chat Widget
 
 What I added
-- A small Express backend at `server.js` that exposes POST /api/chat. It forwards messages to the Hugging Face Inference API if you set `HF_API_KEY` in a `.env` file (see `.env.example`). If no key is present, the server returns a simple offline fallback reply.
+- A small Express backend at `server.js` that exposes POST /api/chat. It forwards messages to the Google Gemini API if you set `GEMINI_API_KEY` in a `.env` file. If no key is present, the server returns a simple offline fallback reply. // This was already updated
 - A floating chat widget (assets/chat-widget.js + assets/chat.css) that posts messages to `http://localhost:3000/api/chat` by default.
 
 How to run (Windows / PowerShell)

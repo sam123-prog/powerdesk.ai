@@ -93,27 +93,42 @@
     <!-- Message Input Form -->
     <form id="messageForm">
         <input type="text" id="messageInput" placeholder="Enter your message" required="">
-        <button type="submit">Submit</button>
+        <button type="submit">Send Command</button>
     </form>
+
+    <!-- Div to show response from backend -->
+    <div id="response" style="margin-top: 20px; padding: 15px; background-color: #333; border-radius: 8px; max-width: 500px; margin-left: auto; margin-right: auto; display: none;"></div>
+
     <footer>
         © 2025 Powerdesk.ai | All Rights Reserved
     </footer>
 
     <script>
-        // Save message to localStorage when submitted (original behavior restored)
         const form = document.getElementById('messageForm');
         const input = document.getElementById('messageInput');
+        const responseDiv = document.getElementById('response');
 
-        form.addEventListener('submit', (event) => {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault(); // stop form from reloading page
             const message = input.value.trim();
             if (message) {
-                // Retrieve existing messages or create new array
-                let messages = JSON.parse(localStorage.getItem('history')) || [];
-                messages.push(message);
-                localStorage.setItem('history', JSON.stringify(messages));
-                alert("Message saved to history!");
-                input.value = ""; // clear input box
+                try {
+                    const res = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        // Add context so backend knows this is the main ticketing bot
+                        body: JSON.stringify({ message: message, context: 'powerdesk_main' })
+                    });
+                    const data = await res.json();
+                    responseDiv.textContent = data.reply || data.error || 'An unknown error occurred.';
+                    responseDiv.style.display = 'block';
+                } catch (err) {
+                    responseDiv.textContent = 'Error communicating with the server.';
+                    responseDiv.style.display = 'block';
+                    console.error(err);
+                } finally {
+                    input.value = ""; // clear input box
+                }
             }
         });
     </script>

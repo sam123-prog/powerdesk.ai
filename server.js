@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
 const PORT = process.env.PORT || 3000;
-let HF_KEY = process.env.HF_API_KEY;
+let GEMINI_KEY = process.env.GEMINI_API_KEY; // This line is already correct from previous turn
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || null;
 
 // Available models (for key validation and frontend selection)
@@ -22,24 +22,28 @@ const MODELS = {
   'facebook/blenderbot-400M-distill': { name: 'Blenderbot 400M', type: 'chat' }
 };
 const DEFAULT_MODEL = 'google/flan-t5-small';
+const GEMINI_MODEL = 'gemini-pro';
 
-// Test an HF API key against a model
-async function testHfKey(key, model = DEFAULT_MODEL) {
+// Test a Gemini API key (This function was already updated in previous turn)
+async function testGeminiKey(key) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
   try {
-    const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+    const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ inputs: 'Hello! Test message.' })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Hello' }] }]
+      })
     });
+    const responseData = await response.json();
     if (!response.ok) {
-      const text = await response.text();
-      return { ok: false, error: `API error: ${text}` };
+      const errorDetails = responseData?.error?.message || JSON.stringify(responseData);
+      return { ok: false, error: `API error: ${errorDetails}` };
     }
-    await response.json(); // validate JSON response
-    return { ok: true };
+    if (responseData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return { ok: true };
+    }
+    return { ok: false, error: 'Invalid response structure from Gemini API.' };
   } catch (e) {
     return { ok: false, error: e.message };
   }
@@ -52,9 +56,9 @@ try {
   if (fs.existsSync(secretsPath)) {
     const secRaw = fs.readFileSync(secretsPath, 'utf8') || '{}';
     const secrets = JSON.parse(secRaw);
-    if (secrets && secrets.HF_API_KEY) {
-      HF_KEY = HF_KEY || secrets.HF_API_KEY;
-      console.log('Loaded HF API key from secrets.json');
+    if (secrets && secrets.GEMINI_API_KEY) { // This was already updated
+      GEMINI_KEY = GEMINI_KEY || secrets.GEMINI_API_KEY; // This was already updated
+      console.log('Loaded Gemini API key from secrets.json');
     }
   }
 } catch (e) {
@@ -96,6 +100,15 @@ try {
     page TEXT
   )`).run();
 
+  db.prepare(`CREATE TABLE IF NOT EXISTS tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TEXT,
+    subject TEXT,
+    status TEXT DEFAULT 'open',
+    user_agent TEXT,
+    ip TEXT
+  )`).run();
+
   logMessage = (record) => {
     try {
       const stmt = db.prepare('INSERT INTO messages (ts,incoming,reply,model,raw_response,user_agent,ip,page) VALUES (?,?,?,?,?,?,?,?)');
@@ -107,6 +120,9 @@ try {
 
   getHistoryRows = (limit) => db.prepare('SELECT * FROM messages ORDER BY id DESC LIMIT ?').all(limit);
   clearAll = () => db.prepare('DELETE FROM messages').run();
+  // Add ticket clearing for simplicity in this example
+  clearAll = () => { db.prepare('DELETE FROM messages').run(); db.prepare('DELETE FROM tickets').run(); };
+  // This was already updated in previous turn
   useSqlite = true;
   console.log('Using SQLite storage (data.sqlite)');
 } catch (err) {
@@ -154,45 +170,74 @@ try {
 }
 
 app.post('/api/chat', async (req, res) => {
-  const { message } = req.body;
+  const { message, context } = req.body;
   const page = req.body.page || req.get('Referer') || null;
   if (!message) return res.status(400).json({ error: 'Message required' });
 
+  // Simple command parsing for ticketing from the main chatbot
+  // This block was already updated in previous turn
+  if (context === 'powerdesk_main') {
+    const parts = message.trim().toLowerCase().split(' ');
+    const command = parts[0];
+    
+    if (command === 'create_ticket') {
+      const subject = message.substring(message.indexOf(' ') + 1);
+      if (subject.length < 10) {
+        return res.json({ reply: 'Ticket subject must be at least 10 characters long.' });
+      }
+      const stmt = db.prepare('INSERT INTO tickets (ts, subject, user_agent, ip) VALUES (?, ?, ?, ?)');
+      const result = stmt.run(new Date().toISOString(), subject, req.get('User-Agent'), req.ip);
+      return res.json({ reply: `Ticket #${result.lastInsertRowid} created successfully with subject: "${subject}".` });
+    }
+    if (command === 'track_ticket') {
+      const ticketId = parseInt(parts[1], 10);
+      if (!ticketId) return res.json({ reply: 'Please provide a valid ticket ID. Usage: track_ticket <ID>' });
+      const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
+      if (ticket) {
+        return res.json({ reply: `Ticket #${ticket.id} (${ticket.status}): "${ticket.subject}" created on ${ticket.ts}.` });
+      } else {
+        return res.json({ reply: `Ticket #${ticketId} not found.` });
+      }
+    }
+    // Add more commands like 'close_ticket' here in a similar fashion
+  }
+
+  // Default AI chat logic for floating widget and other interactions
   try {
-    if (HF_KEY) {
+    if (GEMINI_KEY) { // This was already updated
       const prompt = message;
-      const response = await fetch('https://api-inference.huggingface.co/models/google/flan-t5-small', {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${HF_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ inputs: prompt })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const text = await response.text();
-        return res.status(502).json({ error: 'HF API error', details: text });
+        const errorDetails = data?.error?.message || JSON.stringify(data);
+        console.error('Gemini API Error:', errorDetails);
+        return res.status(502).json({ error: 'Gemini API error', details: errorDetails }); // This was already updated
       }
 
-      const data = await response.json();
-      let text;
-      if (Array.isArray(data)) {
-        text = data[0]?.generated_text || (typeof data[0] === 'string' ? data[0] : JSON.stringify(data));
-      } else if (data?.generated_text) {
-        text = data.generated_text;
-      } else if (typeof data === 'string') {
-        text = data;
-      } else {
-        text = JSON.stringify(data);
+      // Extract text from Gemini's response structure
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!text) {
+        console.error('Invalid response structure from Gemini:', data);
+        return res.status(500).json({ error: 'Failed to parse reply from AI.' }); // This was already updated
       }
+
 
       // Log to DB
       const record = {
         ts: new Date().toISOString(),
         incoming: message,
         reply: text,
-        model: 'google/flan-t5-small',
+        model: GEMINI_MODEL, // This was already updated
         raw_response: JSON.stringify(data),
         user_agent: req.get('User-Agent') || null,
         ip: req.ip,
@@ -232,8 +277,30 @@ function simpleReply(msg) {
   const lower = msg.toLowerCase();
   if (lower.includes('hello') || lower.includes('hi')) return 'Hello! I am Helpdesk AI. How can I help?';
   if (lower.includes('price')) return 'Pricing depends on your plan — please share which product or plan you mean.';
-  return "I'm running in offline mode. To enable AI replies, set HF_API_KEY in a .env file with a Hugging Face API key. For now I can echo: " + msg;
+  return "I'm running in offline mode. To enable AI replies, set GEMINI_API_KEY in a .env file with a Google Gemini API key. For now I can echo: " + msg; // This was already updated
 }
+
+// Ticketing endpoint for the floating "Helpdesk AI"
+app.post('/api/tickets', (req, res) => {
+  const { subject } = req.body;
+  if (!subject || subject.trim().length < 10) {
+    return res.status(400).json({ ok: false, error: 'Ticket subject is required and must be at least 10 characters.' });
+  }
+  
+  if (!useSqlite) {
+    return res.status(500).json({ ok: false, error: 'Database not available. Cannot create ticket.' });
+  }
+
+  try {
+    const stmt = db.prepare('INSERT INTO tickets (ts, subject, user_agent, ip) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(new Date().toISOString(), subject, req.get('User-Agent'), req.ip);
+    res.json({ ok: true, reply: `Support ticket #${result.lastInsertRowid} has been created. Our team will get back to you shortly.` });
+  } catch (e) {
+    console.error('Ticket creation failed', e);
+    res.status(500).json({ ok: false, error: 'Failed to create ticket due to a server error.' });
+  }
+});
+
 
 app.listen(PORT, () => console.log(`Powerdesk backend listening on http://localhost:${PORT}`));
 
@@ -265,48 +332,50 @@ app.get('/api/stream', (req, res) => {
 // Clear stored messages (dangerous - no auth for hackathon). Use with care.
 app.post('/api/clear', (req, res) => {
   try {
-    db.prepare('DELETE FROM messages').run();
+    // This is now handled by the clearAll function to include tickets (This was already updated)
+    clearAll();
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-// Admin: set HF API key (stores in secrets.json). Requires ADMIN_TOKEN in env and adminToken in body.
+// Admin: set Gemini API key (stores in secrets.json). Requires ADMIN_TOKEN in env and adminToken in body. (This was already updated)
 app.post('/api/admin/set-key', async (req, res) => {
-  const { key, adminToken, model } = req.body || {};
+  const { key, adminToken } = req.body || {};
   if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
   if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
   if (!key) return res.status(400).json({ ok: false, error: 'Key is required' });
 
   // Test key before saving
-  const test = await testHfKey(key, model || DEFAULT_MODEL);
+  const test = await testGeminiKey(key); // This was already updated
   if (!test.ok) {
     return res.status(400).json({ ok: false, error: `Key validation failed: ${test.error}` });
   }
 
   try {
-    const data = { HF_API_KEY: key };
+    const data = { GEMINI_API_KEY: key }; // This was already updated
     fs.writeFileSync(secretsPath, JSON.stringify(data, null, 2), 'utf8');
-    HF_KEY = key;
+    GEMINI_KEY = key; // This was already updated
     return res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-// Admin: get masked HF key info and test current key
+// Admin: get masked Gemini key info and test current key
+// This was already updated in previous turn
 app.get('/api/admin/key', async (req, res) => {
   const adminToken = req.query.adminToken || req.get('x-admin-token');
   if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
   if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
   
-  if (!HF_KEY) return res.json({ ok: true, exists: false });
+  if (!GEMINI_KEY) return res.json({ ok: true, exists: false }); // This was already updated
   
   // Test current key in background
-  const key = HF_KEY;
-  const masked = key.length > 8 ? key.slice(0,4) + '...' + key.slice(-4) : key.replace(/.(?=.{2})/g, '*');
-  const test = await testHfKey(key);
+  const key = GEMINI_KEY; // This was already updated
+  const masked = key.length > 8 ? key.slice(0,4) + '...' + key.slice(-4) : key.replace(/.(?=.{2})/g, '*'); // This was already updated
+  const test = await testGeminiKey(key); // This was already updated
   
   return res.json({ 
     ok: true, 
@@ -314,17 +383,17 @@ app.get('/api/admin/key', async (req, res) => {
     masked,
     keyValid: test.ok,
     keyError: test.error,
-    models: Object.entries(MODELS).map(([id,m]) => ({id, ...m}))
+    model: GEMINI_MODEL
   });
 });
 
-// Admin: test a specific key before saving
+// Admin: test a specific key before saving (This was already updated)
 app.post('/api/admin/test-key', async (req, res) => {
   const { key, adminToken, model } = req.body || {};
   if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
   if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
   if (!key) return res.status(400).json({ ok: false, error: 'Key is required' });
   
-  const test = await testHfKey(key, model || DEFAULT_MODEL);
+  const test = await testGeminiKey(key); // This was already updated
   return res.json(test);
 });

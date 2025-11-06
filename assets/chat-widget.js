@@ -86,9 +86,32 @@ if (window.__PD_WIDGET_LOADED) {
       else addMessage('No reply (bad response)', 'bot');
     } catch (err) {
       setTyping(false);
-      addMessage('Error contacting server. Make sure backend is running at ' + API_URL, 'bot');
+      const errorMsg = 'Sorry, I am having trouble connecting. Would you like to create a support ticket instead?';
+      addMessage(errorMsg, 'bot');
+      addTicketButton(text); // Pass original user message
       console.error(err);
     }
+  }
+
+  function addTicketButton(originalUserMessage) {
+    const btn = el('button', { class: 'pd-ticket-btn' }, ['Create Support Ticket']);
+    messages.appendChild(btn);
+    btn.addEventListener('click', async () => {
+      btn.textContent = 'Creating ticket...';
+      btn.disabled = true;
+      try {
+        const res = await fetch((window.POWERDESK_API_URL || 'http://localhost:3000') + '/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject: originalUserMessage })
+        });
+        const data = await res.json();
+        addMessage(data.reply || data.error, 'bot');
+      } catch (e) {
+        addMessage('Failed to create ticket. Please try again later.', 'bot');
+      }
+      btn.remove();
+    });
   }
 
   form.addEventListener('submit', (e) => {
