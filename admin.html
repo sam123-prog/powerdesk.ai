@@ -35,21 +35,76 @@
     }
     function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     async function clearAll(){ if(!confirm('Clear all server messages?')) return; await fetch('/api/clear',{method:'POST'}); document.getElementById('feed').innerHTML=''; }
+    
+    // Load model list into select
+    async function loadModels() {
+      const adminToken = document.getElementById('admin-token').value.trim();
+      if (!adminToken) return;
+      const res = await fetch('/api/admin/key?adminToken='+encodeURIComponent(adminToken));
+      const data = await res.json();
+      if (data.ok && data.models) {
+        const sel = document.getElementById('model');
+        sel.innerHTML = data.models.map(m => `<option value="${m.id}">${m.name} (${m.type})</option>`).join('');
+      }
+    }
+    
+    async function testKey(){
+      const adminToken = document.getElementById('admin-token').value.trim();
+      const key = document.getElementById('hf-key').value.trim();
+      const model = document.getElementById('model').value;
+      if(!adminToken) return alert('Provide admin token');
+      if(!key) return alert('Provide HF key');
+      document.getElementById('key-status').textContent = 'Testing...';
+      const res = await fetch('/api/admin/test-key',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({adminToken,key,model})
+      });
+      const data = await res.json();
+      document.getElementById('key-status').textContent = data.ok ? 'Key valid!' : ('Invalid: ' + data.error);
+    }
+    
     async function setKey(){
       const adminToken = document.getElementById('admin-token').value.trim();
       const key = document.getElementById('hf-key').value.trim();
+      const model = document.getElementById('model').value;
       if(!adminToken) return alert('Provide admin token');
       if(!key) return alert('Provide HF key');
-      const res = await fetch('/api/admin/set-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminToken,key})});
+      document.getElementById('key-status').textContent = 'Validating and saving...';
+      const res = await fetch('/api/admin/set-key',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({adminToken,key,model})
+      });
       const data = await res.json();
-      if(data.ok) document.getElementById('key-status').textContent='Key saved'; else document.getElementById('key-status').textContent='Error: '+(data.error||'unknown');
+      if(data.ok) {
+        document.getElementById('key-status').textContent='Key validated and saved!';
+        viewKey();
+      } else {
+        document.getElementById('key-status').textContent='Error: '+(data.error||'unknown');
+      }
     }
+    
     async function viewKey(){
       const adminToken = document.getElementById('admin-token').value.trim();
       if(!adminToken) return alert('Provide admin token');
       const res = await fetch('/api/admin/key?adminToken='+encodeURIComponent(adminToken));
       const data = await res.json();
-      if(data.ok){ document.getElementById('key-status').textContent = data.exists ? ('Key: '+data.masked) : 'No key set'; } else { document.getElementById('key-status').textContent='Error: '+(data.error||'unknown'); }
+      if(data.ok){
+        if (!data.exists) {
+          document.getElementById('key-status').textContent = 'No key set';
+        } else {
+          const status = data.keyValid ? 'valid' : ('invalid: ' + data.keyError);
+          document.getElementById('key-status').textContent = `Key: ${data.masked} (${status})`;
+        }
+        // Load models list
+        if (data.models) {
+          const sel = document.getElementById('model');
+          sel.innerHTML = data.models.map(m => `<option value="${m.id}">${m.name} (${m.type})</option>`).join('');
+        }
+      } else {
+        document.getElementById('key-status').textContent='Error: '+(data.error||'unknown');
+      }
     }
   </script>
 </head>

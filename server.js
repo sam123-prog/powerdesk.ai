@@ -15,6 +15,36 @@ const PORT = process.env.PORT || 3000;
 let HF_KEY = process.env.HF_API_KEY;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || null;
 
+// Available models (for key validation and frontend selection)
+const MODELS = {
+  'google/flan-t5-small': { name: 'Flan-T5 Small', type: 'instruct' },
+  'microsoft/DialoGPT-small': { name: 'DialoGPT Small', type: 'chat' },
+  'facebook/blenderbot-400M-distill': { name: 'Blenderbot 400M', type: 'chat' }
+};
+const DEFAULT_MODEL = 'google/flan-t5-small';
+
+// Test an HF API key against a model
+async function testHfKey(key, model = DEFAULT_MODEL) {
+  try {
+    const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ inputs: 'Hello! Test message.' })
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      return { ok: false, error: `API error: ${text}` };
+    }
+    await response.json(); // validate JSON response
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 // allow storing the HF key in a local secrets.json (gitignored). If present, it overrides env HF_API_KEY.
 const fs = require('fs');
 const secretsPath = path.join(__dirname, 'secrets.json');
@@ -243,10 +273,18 @@ app.post('/api/clear', (req, res) => {
 });
 
 // Admin: set HF API key (stores in secrets.json). Requires ADMIN_TOKEN in env and adminToken in body.
-app.post('/api/admin/set-key', (req, res) => {
-  const { key, adminToken } = req.body || {};
+app.post('/api/admin/set-key', async (req, res) => {
+  const { key, adminToken, model } = req.body || {};
   if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
   if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
+  if (!key) return res.status(400).json({ ok: false, error: 'Key is required' });
+
+  // Test key before saving
+  const test = await testHfKey(key, model || DEFAULT_MODEL);
+  if (!test.ok) {
+    return res.status(400).json({ ok: false, error: `Key validation failed: ${test.error}` });
+  }
+
   try {
     const data = { HF_API_KEY: key };
     fs.writeFileSync(secretsPath, JSON.stringify(data, null, 2), 'utf8');
@@ -257,13 +295,36 @@ app.post('/api/admin/set-key', (req, res) => {
   }
 });
 
-// Admin: get masked HF key info
-app.get('/api/admin/key', (req, res) => {
+// Admin: get masked HF key info and test current key
+app.get('/api/admin/key', async (req, res) => {
   const adminToken = req.query.adminToken || req.get('x-admin-token');
   if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
   if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
+  
   if (!HF_KEY) return res.json({ ok: true, exists: false });
+  
+  // Test current key in background
   const key = HF_KEY;
   const masked = key.length > 8 ? key.slice(0,4) + '...' + key.slice(-4) : key.replace(/.(?=.{2})/g, '*');
-  return res.json({ ok: true, exists: true, masked });
+  const test = await testHfKey(key);
+  
+  return res.json({ 
+    ok: true, 
+    exists: true, 
+    masked,
+    keyValid: test.ok,
+    keyError: test.error,
+    models: Object.entries(MODELS).map(([id,m]) => ({id, ...m}))
+  });
+});
+
+// Admin: test a specific key before saving
+app.post('/api/admin/test-key', async (req, res) => {
+  const { key, adminToken, model } = req.body || {};
+  if (!ADMIN_TOKEN) return res.status(400).json({ ok: false, error: 'ADMIN_TOKEN not configured on server' });
+  if (!adminToken || adminToken !== ADMIN_TOKEN) return res.status(403).json({ ok: false, error: 'Invalid admin token' });
+  if (!key) return res.status(400).json({ ok: false, error: 'Key is required' });
+  
+  const test = await testHfKey(key, model || DEFAULT_MODEL);
+  return res.json(test);
 });

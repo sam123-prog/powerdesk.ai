@@ -99,9 +99,38 @@ if (window.__PD_WIDGET_LOADED) {
     sendMessage(txt);
   });
 
-  // welcome — only add if there are no messages already (prevents duplication)
-  if (!messages.hasChildNodes()) {
-    addMessage('Welcome to Helpdesk AI — ask me anything.');
+  // Chat history persistence in localStorage
+  const STORAGE_KEY = 'helpdesk_messages';
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const history = JSON.parse(saved);
+      history.forEach(msg => addMessage(msg.text, msg.from));
+    } else {
+      // Only show welcome if no history exists
+      addMessage('Welcome to Helpdesk AI — ask me anything.');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([{text: 'Welcome to Helpdesk AI — ask me anything.', from: 'bot'}]));
+    }
+  } catch (e) {
+    console.warn('Failed to load chat history', e);
+    // Fallback welcome if storage fails
+    if (!messages.hasChildNodes()) {
+      addMessage('Welcome to Helpdesk AI — ask me anything.');
+    }
   }
+
+  // Update history when messages are added
+  const originalAddMessage = addMessage;
+  addMessage = (text, from = 'bot') => {
+    originalAddMessage(text, from);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || '[]';
+      const history = JSON.parse(saved);
+      history.push({text, from});
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    } catch (e) {
+      console.warn('Failed to save message to history', e);
+    }
+  };
   })();
 }
